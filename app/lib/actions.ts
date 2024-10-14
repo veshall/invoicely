@@ -4,6 +4,7 @@ import { sql } from "@vercel/postgres";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { createClient } from "../utils/supabase/server";
 
 const FormSchema = z.object({
 	id: z.string(),
@@ -11,33 +12,44 @@ const FormSchema = z.object({
 	amount: z.coerce
 		.number()
 		.gt(0, { message: "Please enter an amount greater than ₹0." }),
-	status: z.enum(["pending", "paid"], {
-		invalid_type_error: "Please select an invoice status.",
-	}),
+	status: z.boolean(),
 	date: z.string(),
 });
 
 const CreateInvoice = FormSchema.omit({ id: true, date: true });
 
-export type State = {
-	errors?: {
-		customerId?: string[];
-		amount?: string[];
-		status?: string[];
-	};
-	message?: string | null;
+export type Invoice = {
+	id: string; // Will be created on the database
+	customer_id: string;
+	amount: number; // Stored in rupees
+	status: "pending" | "paid";
+	date: string;
 };
 
-'use server';
- 
 export async function createInvoice(formData: FormData) {
-  const rawFormData = {
-    customerId: formData.get('customerId'),
-    amount: formData.get('amount'),
-    status: formData.get('status'),
-  };
-  // Test it out:
-  console.log(rawFormData);
+	const supabase = createClient();
+
+	const rawFormData = {
+		customer_id: Number(formData.get("customerId")),
+		amount: Number(formData.get("amount")),
+		status: formData.get("status"),
+		created_at : 'asdfasdf234'
+	};
+	// Test it out:
+	console.log(rawFormData);
+
+	try {
+		const { data, error } = await supabase
+			.from("invoices")
+			.insert([{ ...rawFormData }])
+			.select();
+	} catch (error) {
+		console.error("Database Error:", error);
+		throw new Error("Failed to create invoices.");
+	}
+
+	revalidatePath("/dashboard/invoices");
+	redirect("/dashboard/invoices");
 }
 
 // export async function createInvoice(prevState: State, formData: FormData) {
