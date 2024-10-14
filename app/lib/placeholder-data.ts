@@ -14,7 +14,7 @@ const customers = [
     id: '1a2b3c4d-5e6f-7g8h-9i0j-k1l2m3n4o5p6',
     name: 'Rajesh Kumar',
     email: 'rajesh.kumar@example.com',
-    image_url: '/customers/rajesh-kumar.avif',
+    image_url: '/customers/rajesh-kumar.avif  ',
   },
   {
     id: '2b3c4d5e-6f7g-8h9i-0j1k-l2m3n4o5p6q7',
